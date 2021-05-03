@@ -78,10 +78,6 @@ const viewEmployees = () => {
     connection.query(query, (err, res) => {
         console.log(`EMPLOYEES:`)
         console.table(res);
-        // res.forEach(employee => {
-        //     console.table([`ID: ${employee.id} | Name: ${employee.first_name} ${employee.last_name} | Role ID: ${employee.role_id} | Manager ID: ${employee.
-        //         manager_id}`]);
-        // });
         runSearch();
     });
 }
@@ -101,6 +97,7 @@ const viewByDepartment = () => {
 // }
 
 const addEmployee = () => {
+    const query = 'SELECT * FROM employee';
     inquirer
     .prompt({
       name: 'firstName',
@@ -125,17 +122,108 @@ const addEmployee = () => {
             'Accountant',
             'Legal Team Lead',
         ],
-    },
-    {
-        name: 'employeeManager',
-        type: 'rawlist',
-        message: 'Who is the employees manager?',
-        choices: [
-        ]
-    }
-)
+    })
+    //
+    // {connection.query(query, (err, res) => { 
+    //     inquirer.prompt({
+    //         name: 'employeeManager',
+    //         type: 'rawlist',
+    //         message: 'Who is the employees manager?',
+    //         choices: res.map(employee => employee.manager_id)})
+    //     .then((answer) => {
+    //         console.log(answer);
+    //         connection.query('SELECT * FROM employee WHERE ?',
+    //             { id: answer.employee },
+    //             (err, res) => {
+    //                 console.log(res);
+    //                 if (err) throw err;
+    //                 console.log('Your employee was deleted successfully!');
+    //                 runSearch();
+    //             });
+    //         });
+    // }),
+    // })
     .then((answer) => {
         connection.query('INSERT INTO employee SET ?',
+            {
+                first_name: answer.firstName,
+                last_name: answer.lastName,
+                role_id: answer.role,
+                manager_id: answer.employeeManager,
+            },
+            (err) => {
+                if (err) throw err;
+                console.log('Your employee was created successfully!');
+                runSearch();
+              }
+        )
+    })
+    };
+
+
+const removeEmployee = () => {
+    const query = 'SELECT * FROM employee';
+    connection.query(query, (err,res) => {
+        // console.log(res.map(employee => employee.id));
+        inquirer
+            .prompt({
+                name: 'employee',
+                type: 'rawlist',
+                message: 'Which employee would you like to remove?',
+                choices: res.map(employee => employee.id)
+        })
+        .then((answer) => {
+            console.log(answer);
+            connection.query('DELETE FROM employee WHERE ?',
+                { id: answer.employee },
+                (err, res) => {
+                    console.log(res);
+                    if (err) throw err;
+                    console.log('Your employee was deleted successfully!');
+                    runSearch();
+                  }
+            );
+        });
+    })      
+}
+
+const viewRoles = () => {
+    const query = 'SELECT * FROM employee_role';
+    connection.query(query, (err, res) => {
+        if (err) throw (err);
+        console.log(`EMPLOYEE ROLES:`);
+        console.table(res);
+        runSearch();
+    });
+    
+}
+
+const addRole = () => {
+    inquirer
+    .prompt({
+        name: 'title',
+        type: 'input',
+        message: 'What role would you like to add?',
+        },
+        {
+        name: 'salary',
+        type: 'input',
+        message: 'What is the salary for this role?',
+        },
+        {
+        name: 'department',
+        type: 'rawlist',
+        message: 'What is the employees role?',
+        choices: [
+                'Sales',
+                'Engineering',
+                'Accounts',
+                'Legal'
+            ],
+        }
+    )
+    .then((answer) => {
+        connection.query('INSERT INTO employee_role SET ?',
             {
                 first_name: answer.firstName,
                 last_name: answer.lastName,
@@ -146,34 +234,7 @@ const addEmployee = () => {
                 runSearch();
               }
         );
-          });
-          
-}
-
-// const removeEmployee = () => {
-//     inquirer
-//         .prompt({
-//             name: 'employee',
-//             type: 'rawlist',
-//             message: 'Which employee would you like to remove?',
-//             choices: [
-//                 '',
-//             ]
-//         })
-// }
-
-const viewRoles = () => {
-    const query = 'SELECT * FROM employee_role';
-    connection.query(query, (err, res) => {
-        if (err) throw (err);
-        console.log(`EMPLOYEE ROLES:`);
-        console.table(res);
-        runSearch();
     });
-}
-
-const addRole = () => {
-
 }
 
 const viewDepartments = () => {
